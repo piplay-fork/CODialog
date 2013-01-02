@@ -185,6 +185,10 @@ CODialogSynth(highlightedIndex)
   CGFloat layoutFrameInset = kCODialogFrameInset + kCODialogPadding;
   CGRect layoutFrame = CGRectInset(self.bounds, layoutFrameInset, layoutFrameInset);
   CGFloat layoutWidth = CGRectGetWidth(layoutFrame);
+  if (self.maximumDialogWidth > 0) {
+      layoutWidth = MIN(layoutWidth, self.maximumDialogWidth);
+      layoutFrame.size.width = layoutWidth;
+  }
   
   // Title frame
   CGFloat titleHeight = 0;
