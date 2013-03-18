@@ -30,7 +30,7 @@
 @end
 
 #define CODialogSynth(x) @synthesize x = x##_;
-#define CODialogAssertMQ() NSAssert(dispatch_get_current_queue() == dispatch_get_main_queue(), @"%@ must be called on main queue", NSStringFromSelector(_cmd));
+#define CODialogAssertMQ() NSAssert([NSThread isMainThread], @"%@ must be called on main thread", NSStringFromSelector(_cmd));
 
 #define kCODialogAnimationDuration 0.15
 #define kCODialogPopScale 0.5
