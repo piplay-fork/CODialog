@@ -243,6 +243,10 @@ CODialogSynth(highlightedIndex)
   CGFloat layoutFrameInset = kCODialogFrameInset + kCODialogPadding;
   CGRect layoutFrame = CGRectInset(self.bounds, layoutFrameInset, layoutFrameInset);
   CGFloat layoutWidth = CGRectGetWidth(layoutFrame);
+  if (self.maximumDialogWidth > 0) {
+      layoutWidth = MIN(layoutWidth, self.maximumDialogWidth);
+      layoutFrame.size.width = layoutWidth;
+  }
   
   // Title frame
   CGFloat titleHeight = 0;
@@ -465,6 +469,11 @@ CODialogSynth(highlightedIndex)
 - (NSString *)textForTextFieldAtIndex:(NSUInteger)index {
   UITextField *field = [self.textFields objectAtIndex:index];
   return [field text];
+}
+
+- (void)setText:(NSString *)text forTextFieldAtIndex:(NSUInteger)index {
+    UITextField *field = [self.textFields objectAtIndex:index];
+    [field setText:text];
 }
 
 - (void)showOrUpdateAnimatedInternal:(BOOL)flag {

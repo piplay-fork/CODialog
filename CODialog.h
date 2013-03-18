@@ -26,6 +26,7 @@ typedef NSInteger CODialogStyle;
 @property (nonatomic, copy) NSString *subtitle;
 @property (nonatomic, assign) CGFloat progress;
 @property (nonatomic, assign) NSTimeInterval batchDelay;
+@property (nonatomic, assign) CGFloat maximumDialogWidth;
 
 + (instancetype)dialogWithWindow:(UIWindow *)hostWindow;
 
@@ -45,6 +46,10 @@ typedef NSInteger CODialogStyle;
 /** @name Getting Values */
 
 - (NSString *)textForTextFieldAtIndex:(NSUInteger)index;
+
+/** @name Setting Values */
+
+- (void)setText:(NSString *)text forTextFieldAtIndex:(NSUInteger)index;
 
 /** @name Showing, Updating and Hiding */
 
