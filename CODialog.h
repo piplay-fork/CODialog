@@ -10,12 +10,12 @@
 
 
 enum {
-  CODialogStyleDefault = 0,
-  CODialogStyleIndeterminate,
-  CODialogStyleDeterminate,
-  CODialogStyleSuccess,
-  CODialogStyleError,
-  CODialogStyleCustomView
+    CODialogStyleDefault = 0,
+    CODialogStyleIndeterminate,
+    CODialogStyleDeterminate,
+    CODialogStyleSuccess,
+    CODialogStyleError,
+    CODialogStyleCustomView
 };
 typedef NSInteger CODialogStyle;
 
@@ -39,9 +39,9 @@ typedef NSInteger CODialogStyle;
 - (void)removeAllTextFields;
 - (void)removeAllButtons;
 
-- (void)addTextFieldWithPlaceholder:(NSString *)placeholder secure:(BOOL)secure;
-- (void)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel;
-- (void)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel highlighted:(BOOL)flag;
+- (UITextField *)addTextFieldWithPlaceholder:(NSString *)placeholder secure:(BOOL)secure;
+- (UIButton *)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel;
+- (UIButton *)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel highlighted:(BOOL)flag;
 
 /** @name Getting Values */
 
