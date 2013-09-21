@@ -20,6 +20,7 @@ enum {
 typedef NSInteger CODialogStyle;
 
 @interface CODialog : UIView
+
 @property (nonatomic, strong) UIView *customView;
 @property (nonatomic, assign) CODialogStyle dialogStyle;
 @property (nonatomic, copy) NSString *title;
@@ -27,6 +28,8 @@ typedef NSInteger CODialogStyle;
 @property (nonatomic, assign) CGFloat progress;
 @property (nonatomic, assign) NSTimeInterval batchDelay;
 @property (nonatomic, assign) CGFloat maximumDialogWidth;
+
++ (instancetype)dialog;
 
 + (instancetype)dialogWithWindow:(UIWindow *)hostWindow;
 
@@ -40,8 +43,11 @@ typedef NSInteger CODialogStyle;
 - (void)removeAllButtons;
 
 - (UITextField *)addTextFieldWithPlaceholder:(NSString *)placeholder secure:(BOOL)secure;
+- (UITextField *)textFieldAtIndex:(NSUInteger)index;
+- (UIButton *)addCancelButtonWithTitle:(NSString *)title;
 - (UIButton *)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel;
 - (UIButton *)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel highlighted:(BOOL)flag;
+- (UIButton *)buttonAtIndex:(NSUInteger)index;
 
 /** @name Getting Values */
 
@@ -66,5 +72,17 @@ typedef NSInteger CODialogStyle;
 - (void)drawSymbolInRect:(CGRect)rect;
 - (void)drawTextFieldInRect:(CGRect)rect;
 - (void)drawDimmedBackgroundInRect:(CGRect)rect;
+
+@end
+
+@interface CODialogTextField : UITextField
+
+@property (nonatomic, assign) CODialog *dialog;
+
+@end
+
+@interface CODialogButton : UIButton
+
+@property (nonatomic, assign) CODialog *dialog;
 
 @end

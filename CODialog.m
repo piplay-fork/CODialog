@@ -8,13 +8,8 @@
 
 #import "CODialog.h"
 
-
-@interface CODialogTextField : UITextField
-@property (nonatomic, strong) CODialog *dialog;
-@end
-
 @interface CODialogWindowOverlay : UIWindow
-@property (nonatomic, strong) CODialog *dialog;
+@property (nonatomic, assign) CODialog *dialog;
 @end
 
 @interface CODialog ()
@@ -66,6 +61,11 @@ CODialogSynth(titleFont)
 CODialogSynth(subtitleFont)
 CODialogSynth(highlightedIndex)
 
++ (instancetype)dialog
+{
+    return [[self alloc] initWithWindow:[UIApplication sharedApplication].keyWindow];
+}
+
 + (instancetype)dialogWithWindow:(UIWindow *)hostWindow
 {
     return [[self alloc] initWithWindow:hostWindow];
@@ -99,7 +99,6 @@ CODialogSynth(highlightedIndex)
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter] removeObserver:self];
-    [super dealloc];
 }
 
 - (void)adjustToKeyboardBounds:(CGRect)bounds
@@ -156,7 +155,7 @@ CODialogSynth(highlightedIndex)
 
 - (CGAffineTransform)dialogTransform
 {
-#define degreesToRadian(x) (M_PI * (x) / 180.0)
+    #define degreesToRadian(x) (M_PI * (x) / 180.0)
     CGAffineTransform transform = CGAffineTransformIdentity;
     switch ([UIApplication sharedApplication].statusBarOrientation) {
         case UIInterfaceOrientationPortrait:
@@ -461,6 +460,21 @@ CODialogSynth(highlightedIndex)
     return field;
 }
 
+- (UITextField *)textFieldAtIndex:(NSUInteger)index
+{
+    return self.textFields[index];
+}
+
+- (void)dismiss:(CODialogButton *)sender
+{
+    [sender.dialog hideAnimated:YES];
+}
+
+- (UIButton *)addCancelButtonWithTitle:(NSString *)title
+{
+    return [self addButtonWithTitle:title target:self selector:@selector(dismiss:)];
+}
+
 - (UIButton *)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel
 {
     return [self addButtonWithTitle:title target:target selector:sel highlighted:NO];
@@ -468,7 +482,8 @@ CODialogSynth(highlightedIndex)
 
 - (UIButton *)addButtonWithTitle:(NSString *)title target:(id)target selector:(SEL)sel highlighted:(BOOL)flag
 {
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    CODialogButton *button = [CODialogButton buttonWithType:UIButtonTypeCustom];
+    button.dialog = self;
     
     [button setTitle:title forState:UIControlStateNormal];
     [button addTarget:target action:sel forControlEvents:UIControlEventTouchUpInside];
@@ -479,6 +494,11 @@ CODialogSynth(highlightedIndex)
     
     [self.buttons addObject:button];
     return button;
+}
+
+- (UIButton *)buttonAtIndex:(NSUInteger)index
+{
+    return self.buttons[index];
 }
 
 - (NSString *)textForTextFieldAtIndex:(NSUInteger)index
@@ -1008,6 +1028,12 @@ CODialogSynth(dialog)
 {
     [self.dialog drawTextFieldInRect:rect];
 }
+
+@end
+
+@implementation CODialogButton
+
+CODialogSynth(dialog)
 
 @end
 
