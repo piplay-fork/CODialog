@@ -107,6 +107,9 @@ CODialogSynth(highlightedIndex)
     CGRect frame = self.frame;
     
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
+    if (self.interfaceOrientation != UIDeviceOrientationUnknown) {
+        orientation = self.interfaceOrientation;
+    }
     if (UIInterfaceOrientationIsPortrait(orientation)) {
         frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
         frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;

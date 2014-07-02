@@ -21,6 +21,7 @@ typedef NSInteger CODialogStyle;
 
 @interface CODialog : UIView
 
+@property(nonatomic) UIInterfaceOrientation interfaceOrientation;
 @property (nonatomic, strong) UIView *customView;
 @property (nonatomic, assign) CODialogStyle dialogStyle;
 @property (nonatomic, copy) NSString *title;
