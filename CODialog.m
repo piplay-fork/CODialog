@@ -107,20 +107,28 @@ CODialogSynth(highlightedIndex)
     CGRect frame = self.frame;
     
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-    if (self.interfaceOrientation != UIDeviceOrientationUnknown) {
+    if (orientation == UIDeviceOrientationUnknown) {
         orientation = self.interfaceOrientation;
     }
-    if (UIInterfaceOrientationIsPortrait(orientation)) {
+    if (UIDeviceOrientationIsLandscape(orientation)) {
+        if (screenBounds.size.width < screenBounds.size.height) {
+            CGFloat temp = screenBounds.size.height;
+            screenBounds.size.height = screenBounds.size.width;
+            screenBounds.size.width = temp;
+            temp = bounds.size.height;
+            bounds.size.height = bounds.size.width;
+            bounds.size.width = bounds.size.height;
+        }
+        frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+    } else {
         frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
         frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
-    } else {
-        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
-        frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
     }
-    if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
+    if (orientation == UIDeviceOrientationPortraitUpsideDown) {
         frame.origin.y += CGRectGetHeight(bounds);
-    } else if (orientation == UIInterfaceOrientationLandscapeRight) {
-        frame.origin.x += CGRectGetWidth(bounds);
+    } else if (orientation == UIDeviceOrientationLandscapeLeft) {
+        frame.origin.x += CGRectGetHeight(bounds);
     }
     
     if (CGRectGetMinY(frame) < 0) {
@@ -405,8 +413,14 @@ CODialogSynth(highlightedIndex)
         CGRect dialogFrame = CGRectInset(layoutFrame, -kCODialogFrameInset - kCODialogPadding, -kCODialogFrameInset - kCODialogPadding);
         self.bounds = (CGRect){CGPointZero, dialogFrame.size};
         dialogFrame = self.frame;
-        dialogFrame.origin.x = (CGRectGetWidth(self.hostWindow.bounds) - CGRectGetWidth(dialogFrame)) / 2.0;
-        dialogFrame.origin.y = (CGRectGetHeight(self.hostWindow.bounds) - CGRectGetHeight(dialogFrame)) / 2.0;
+        CGRect frame = self.hostWindow.bounds;
+        if (frame.size.width > frame.size.height) {
+            CGFloat temp = frame.size.width;
+            frame.size.width = frame.size.height;
+            frame.size.height = temp;
+        }
+        dialogFrame.origin.x = (CGRectGetWidth(frame) - CGRectGetWidth(dialogFrame)) / 2.0;
+        dialogFrame.origin.y = (CGRectGetHeight(frame) - CGRectGetHeight(dialogFrame)) / 2.0;
         
         self.frame = CGRectIntegral(dialogFrame);
     } completion:^(BOOL finished) {
@@ -529,7 +543,13 @@ CODialogSynth(highlightedIndex)
         overlay.opaque = NO;
         overlay.windowLevel = UIWindowLevelStatusBar + 1;    
         overlay.dialog = self;
-        overlay.frame = self.hostWindow.bounds;
+        CGRect frame = self.hostWindow.bounds;
+        if (frame.size.width > frame.size.height) {
+            CGFloat temp = frame.size.width;
+            frame.size.width = frame.size.height;
+            frame.size.height = temp;
+        }
+        overlay.frame = frame;
         overlay.alpha = 0.0;
     }
     
