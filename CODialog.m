@@ -8,11 +8,29 @@
 
 #import "CODialog.h"
 
+#define SYSTEM_VERSION_EQUAL_TO(v)                  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedSame)
+#define SYSTEM_VERSION_GREATER_THAN(v)              ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedDescending)
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN(v)                 ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] == NSOrderedAscending)
+#define SYSTEM_VERSION_LESS_THAN_OR_EQUAL_TO(v)     ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedDescending)
+
+#define CODialogSynth(x) @synthesize x = x##_;
+#define CODialogAssertMQ() NSAssert([NSThread isMainThread], @"%@ must be called on main thread", NSStringFromSelector(_cmd));
+#define DegreesToRadian(x) (M_PI * (x) / 180.0)
+
+#define kCODialogAnimationDuration 0.15
+#define kCODialogPopScale 0.5
+#define kCODialogPadding 8.0
+#define kCODialogFrameInset 8.0
+#define kCODialogButtonHeight 44.0
+#define kCODialogTextFieldHeight 29.0
+
 @interface CODialogWindowOverlay : UIWindow
 @property (nonatomic, assign) CODialog *dialog;
 @end
 
 @interface CODialog ()
+@property (nonatomic, assign) BOOL below9;
 @property (nonatomic, strong) CODialogWindowOverlay *overlay;
 @property (nonatomic, strong) UIWindow *hostWindow;
 @property (nonatomic, strong) UIView *contentView;
@@ -23,16 +41,6 @@
 @property (nonatomic, strong) UIFont *subtitleFont;
 @property (nonatomic, assign) NSInteger highlightedIndex;
 @end
-
-#define CODialogSynth(x) @synthesize x = x##_;
-#define CODialogAssertMQ() NSAssert([NSThread isMainThread], @"%@ must be called on main thread", NSStringFromSelector(_cmd));
-
-#define kCODialogAnimationDuration 0.15
-#define kCODialogPopScale 0.5
-#define kCODialogPadding 8.0
-#define kCODialogFrameInset 8.0
-#define kCODialogButtonHeight 44.0
-#define kCODialogTextFieldHeight 29.0
 
 @implementation CODialog {
     
@@ -75,7 +83,7 @@ CODialogSynth(highlightedIndex)
 {
     self = [super initWithFrame:CGRectZero];
     if (self) {
-        self.transform = [self dialogTransform];
+        self.below9 = SYSTEM_VERSION_LESS_THAN(@"9.0");
         self.bounds = [self defaultDialogBounds];
         self.batchDelay = 0;
         self.highlightedIndex = -1;
@@ -103,34 +111,124 @@ CODialogSynth(highlightedIndex)
 
 - (void)adjustToKeyboardBounds:(CGRect)bounds
 {
-    CGRect screenBounds = [[UIScreen mainScreen] bounds];
+    CGRect screenBounds = UIScreen.mainScreen.bounds;
     CGRect frame = self.frame;
     
     UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
     if (orientation == UIDeviceOrientationUnknown) {
         orientation = self.interfaceOrientation;
     }
-    if (UIDeviceOrientationIsLandscape(orientation)) {
-        if (screenBounds.size.width < screenBounds.size.height) {
-            CGFloat temp = screenBounds.size.height;
-            screenBounds.size.height = screenBounds.size.width;
-            screenBounds.size.width = temp;
-            temp = bounds.size.height;
-            bounds.size.height = bounds.size.width;
-            bounds.size.width = bounds.size.height;
+    if (self.below9) {
+        if (UIDeviceOrientationIsLandscape(orientation)) {
+            if (screenBounds.size.width < screenBounds.size.height) {
+                CGFloat temp = screenBounds.size.height;
+                screenBounds.size.height = screenBounds.size.width;
+                screenBounds.size.width = temp;
+                temp = bounds.size.height;
+                bounds.size.height = bounds.size.width;
+                bounds.size.width = bounds.size.height;
+            }
+            frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+            frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+        } else {
+            frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+            frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
         }
-        frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
-        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+        if (orientation == UIDeviceOrientationPortraitUpsideDown) {
+            frame.origin.y += CGRectGetHeight(bounds);
+        } else if (orientation == UIDeviceOrientationLandscapeLeft) {
+            frame.origin.x += CGRectGetHeight(bounds);
+        }
     } else {
-        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
-        frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+        switch (self.interfaceOrientation) {
+            case UIDeviceOrientationPortrait:
+                switch (orientation) {
+                    case UIDeviceOrientationPortrait:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationPortraitUpsideDown:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeLeft:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeRight:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    default: break;
+                }
+                break;
+            case UIDeviceOrientationPortraitUpsideDown:
+                switch (orientation) {
+                    case UIDeviceOrientationPortrait:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationPortraitUpsideDown:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeLeft:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeRight:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    default: break;
+                }
+                break;
+            case UIDeviceOrientationLandscapeLeft:
+                switch (orientation) {
+                    case UIDeviceOrientationPortrait:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationPortraitUpsideDown:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeLeft:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeRight:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    default: break;
+                }
+                break;
+            case UIDeviceOrientationLandscapeRight:
+                switch (orientation) {
+                    case UIDeviceOrientationPortrait:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationPortraitUpsideDown:
+                        frame.origin.x = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeLeft:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) + CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    case UIDeviceOrientationLandscapeRight:
+                        frame.origin.x = (CGRectGetWidth(screenBounds) - CGRectGetWidth(self.bounds)) / 2.0f;
+                        frame.origin.y = (CGRectGetHeight(screenBounds) - CGRectGetHeight(bounds) - CGRectGetHeight(self.bounds)) / 2.0f;
+                        break;
+                    default: break;
+                }
+                break;
+            default: break;
+        }
     }
-    if (orientation == UIDeviceOrientationPortraitUpsideDown) {
-        frame.origin.y += CGRectGetHeight(bounds);
-    } else if (orientation == UIDeviceOrientationLandscapeLeft) {
-        frame.origin.x += CGRectGetHeight(bounds);
-    }
-    
+
     if (CGRectGetMinY(frame) < 0) {
         NSLog(@"warning: dialog is clipped, origin negative (%f)", CGRectGetMinY(frame));
     }
@@ -166,20 +264,38 @@ CODialogSynth(highlightedIndex)
 
 - (CGAffineTransform)dialogTransform
 {
-    #define degreesToRadian(x) (M_PI * (x) / 180.0)
+    CGFloat offset = 0.0f;
+    if (!self.below9) {
+        switch (self.interfaceOrientation) {
+            case UIInterfaceOrientationPortrait:
+                offset = 0.0f;
+                break;
+            case UIInterfaceOrientationPortraitUpsideDown:
+                offset = 180.0f;
+                break;
+            case UIInterfaceOrientationLandscapeLeft:
+                offset = 270.0f;
+                break;
+            case UIInterfaceOrientationLandscapeRight:
+                offset = 90.0f;
+                break;
+            default:
+                break;
+        }
+    }
     CGAffineTransform transform = CGAffineTransformIdentity;
     switch ([UIApplication sharedApplication].statusBarOrientation) {
         case UIInterfaceOrientationPortrait:
-            transform = CGAffineTransformMakeRotation(degreesToRadian(0));
+            transform = CGAffineTransformMakeRotation(DegreesToRadian(0.0f - offset));
             break;
         case UIInterfaceOrientationPortraitUpsideDown:
-            transform = CGAffineTransformMakeRotation(degreesToRadian(180));
+            transform = CGAffineTransformMakeRotation(DegreesToRadian(180.0f - offset));
             break;
         case UIInterfaceOrientationLandscapeLeft:
-            transform = CGAffineTransformMakeRotation(degreesToRadian(270));
+            transform = CGAffineTransformMakeRotation(DegreesToRadian(270.0f - offset));
             break;
         case UIInterfaceOrientationLandscapeRight:
-            transform = CGAffineTransformMakeRotation(degreesToRadian(90));
+            transform = CGAffineTransformMakeRotation(DegreesToRadian(90.0f - offset));
             break;
         default:
             break;
@@ -414,7 +530,7 @@ CODialogSynth(highlightedIndex)
         self.bounds = (CGRect){CGPointZero, dialogFrame.size};
         dialogFrame = self.frame;
         CGRect frame = self.hostWindow.bounds;
-        if (frame.size.width > frame.size.height) {
+        if (self.below9 && frame.size.width > frame.size.height) {
             CGFloat temp = frame.size.width;
             frame.size.width = frame.size.height;
             frame.size.height = temp;
@@ -544,7 +660,7 @@ CODialogSynth(highlightedIndex)
         overlay.windowLevel = UIWindowLevelStatusBar + 1;    
         overlay.dialog = self;
         CGRect frame = self.hostWindow.bounds;
-        if (frame.size.width > frame.size.height) {
+        if (self.below9 && frame.size.width > frame.size.height) {
             CGFloat temp = frame.size.width;
             frame.size.width = frame.size.height;
             frame.size.height = temp;
