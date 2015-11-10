@@ -72,7 +72,7 @@ typedef NSInteger CODialogStyle;
 - (void)drawTitleInRect:(CGRect)rect isSubtitle:(BOOL)isSubtitle;
 - (void)drawSymbolInRect:(CGRect)rect;
 - (void)drawTextFieldInRect:(CGRect)rect;
-- (void)drawDimmedBackgroundInRect:(CGRect)rect;
++ (void)drawDimmedBackgroundInRect:(CGRect)rect;
 
 @end
 

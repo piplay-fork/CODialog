@@ -26,7 +26,6 @@
 #define kCODialogTextFieldHeight 29.0
 
 @interface CODialogWindowOverlay : UIWindow
-@property (nonatomic, assign) CODialog *dialog;
 @end
 
 @interface CODialog ()
@@ -658,7 +657,6 @@ CODialogSynth(highlightedIndex)
         self.overlay = overlay = [CODialogWindowOverlay new];
         overlay.opaque = NO;
         overlay.windowLevel = UIWindowLevelStatusBar + 1;    
-        overlay.dialog = self;
         CGRect frame = self.hostWindow.bounds;
         if (self.below9 && frame.size.width > frame.size.height) {
             CGFloat temp = frame.size.width;
@@ -1087,7 +1085,7 @@ CODialogSynth(highlightedIndex)
     CGContextRestoreGState(context);
 }
 
-- (void)drawDimmedBackgroundInRect:(CGRect)rect
++ (void)drawDimmedBackgroundInRect:(CGRect)rect
 {
     // General Declarations
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
@@ -1178,11 +1176,9 @@ CODialogSynth(dialog)
 
 @implementation CODialogWindowOverlay
 
-CODialogSynth(dialog)
-
 - (void)drawRect:(CGRect)rect
 {
-    [self.dialog drawDimmedBackgroundInRect:rect];
+    [CODialog drawDimmedBackgroundInRect:rect];
 }
 
 @end
