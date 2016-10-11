@@ -118,7 +118,7 @@ CODialogSynth(highlightedIndex)
         orientation = self.interfaceOrientation;
     }
     if (self.below9) {
-        if (UIDeviceOrientationIsLandscape(orientation)) {
+        if (UIDeviceOrientationIsLandscape((UIDeviceOrientation)orientation)) {
             if (screenBounds.size.width < screenBounds.size.height) {
                 CGFloat temp = screenBounds.size.height;
                 screenBounds.size.height = screenBounds.size.width;
