@@ -383,9 +383,12 @@ CODialogSynth(highlightedIndex)
     CGFloat titleHeight = 0;
     CGFloat minY = CGRectGetMinY(layoutFrame);
     if (self.title.length > 0) {
-        titleHeight = [self.title sizeWithFont:self.titleFont
-                             constrainedToSize:CGSizeMake(layoutWidth, MAXFLOAT)
-                                 lineBreakMode:NSLineBreakByWordWrapping].height;
+        NSMutableParagraphStyle *paragraphStyle = NSMutableParagraphStyle.alloc.init;
+        paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+        NSDictionary *attributes = @{NSFontAttributeName : self.titleFont,
+                                     NSParagraphStyleAttributeName : paragraphStyle};
+        titleHeight = [self.title boundingRectWithSize:CGSizeMake(layoutWidth, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:nil].size.height;
+        
         minY += kCODialogPadding;
     }
     layout.titleRect = CGRectMake(CGRectGetMinX(layoutFrame), minY, layoutWidth, titleHeight);
@@ -394,9 +397,12 @@ CODialogSynth(highlightedIndex)
     CGFloat subtitleHeight = 0;
     minY = CGRectGetMaxY(layout.titleRect);
     if (self.subtitle.length > 0) {
-        subtitleHeight = [self.subtitle sizeWithFont:self.subtitleFont
-                                   constrainedToSize:CGSizeMake(layoutWidth, MAXFLOAT)
-                                       lineBreakMode:NSLineBreakByWordWrapping].height;
+        NSMutableParagraphStyle *paragraphStyle = NSMutableParagraphStyle.alloc.init;
+        paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+        NSDictionary *attributes = @{NSFontAttributeName : self.subtitleFont,
+                                     NSParagraphStyleAttributeName : paragraphStyle};
+        subtitleHeight = [self.subtitle boundingRectWithSize:CGSizeMake(layoutWidth, MAXFLOAT) options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:nil].size.height;
+        
         minY += kCODialogPadding;
     }
     layout.subtitleRect = CGRectMake(CGRectGetMinX(layoutFrame), minY, layoutWidth, subtitleHeight);
@@ -915,9 +921,19 @@ CODialogSynth(highlightedIndex)
     
     CGContextSaveGState(ctx);
     CGContextSetShadowWithColor(ctx, CGSizeMake(0.0, -1.0), 0.0, [UIColor blackColor].CGColor);
+
+    /// Make a copy of the default paragraph style
+    NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+    /// Set line break mode
+    paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+    /// Set text alignment
+    paragraphStyle.alignment = NSTextAlignmentCenter;
     
-    [[UIColor whiteColor] set];
-    [title drawInRect:textFrame withFont:self.titleFont lineBreakMode:NSLineBreakByTruncatingMiddle alignment:NSTextAlignmentCenter];
+    NSDictionary *attributes = @{ NSFontAttributeName: self.titleFont,
+                                  NSParagraphStyleAttributeName: paragraphStyle,
+                                  NSForegroundColorAttributeName: UIColor.whiteColor
+                                  };
+    [title drawInRect:textFrame withAttributes:attributes];
     
     CGContextRestoreGState(ctx);
     
@@ -935,10 +951,19 @@ CODialogSynth(highlightedIndex)
         CGContextSetShadowWithColor(ctx, CGSizeMake(0.0, -1.0), 0.0, [UIColor blackColor].CGColor);
         
         UIFont *font = (isSubtitle ? self.subtitleFont : self.titleFont);
+
+        /// Make a copy of the default paragraph style
+        NSMutableParagraphStyle *paragraphStyle = [[NSParagraphStyle defaultParagraphStyle] mutableCopy];
+        /// Set line break mode
+        paragraphStyle.lineBreakMode = NSLineBreakByWordWrapping;
+        /// Set text alignment
+        paragraphStyle.alignment = NSTextAlignmentCenter;
         
-        [[UIColor whiteColor] set];
-        
-        [title drawInRect:rect withFont:font lineBreakMode:NSLineBreakByTruncatingMiddle alignment:NSTextAlignmentCenter];
+        NSDictionary *attributes = @{ NSFontAttributeName: font,
+                                      NSParagraphStyleAttributeName: paragraphStyle,
+                                      NSForegroundColorAttributeName: UIColor.whiteColor
+                                      };
+        [title drawInRect:rect withAttributes:attributes];
         
         CGContextRestoreGState(ctx);
     }
