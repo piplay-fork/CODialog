@@ -21,14 +21,14 @@ typedef NSInteger CODialogStyle;
 
 @interface CODialog : UIView
 
-@property(nonatomic) UIInterfaceOrientation interfaceOrientation;
+@property (nonatomic) UIInterfaceOrientation interfaceOrientation;
 @property (nonatomic, strong) UIView *customView;
-@property (nonatomic, assign) CODialogStyle dialogStyle;
+@property (nonatomic) CODialogStyle dialogStyle;
 @property (nonatomic, copy) NSString *title;
 @property (nonatomic, copy) NSString *subtitle;
-@property (nonatomic, assign) CGFloat progress;
-@property (nonatomic, assign) NSTimeInterval batchDelay;
-@property (nonatomic, assign) CGFloat maximumDialogWidth;
+@property (nonatomic) CGFloat progress;
+@property (nonatomic) NSTimeInterval batchDelay;
+@property (nonatomic) CGFloat maximumDialogWidth;
 
 + (instancetype)dialog;
 
