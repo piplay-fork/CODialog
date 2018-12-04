@@ -123,7 +123,7 @@ CODialogSynth(highlightedIndex)
                 CGFloat temp = screenBounds.size.height;
                 screenBounds.size.height = screenBounds.size.width;
                 screenBounds.size.width = temp;
-                temp = bounds.size.height;
+                //temp = bounds.size.height;
                 bounds.size.height = bounds.size.width;
                 bounds.size.width = bounds.size.height;
             }
@@ -304,7 +304,7 @@ CODialogSynth(highlightedIndex)
 
 - (CGRect)defaultDialogBounds
 {
-    CGRect appFrame = [[UIScreen mainScreen] applicationFrame];
+    CGRect appFrame = [[UIScreen mainScreen] bounds];
     CGRect insetFrame = CGRectZero;
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
         insetFrame.size.width = 380;
